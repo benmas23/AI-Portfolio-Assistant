@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Ben Mascarenhas — Product Designer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0E1013;
+    --panel: #0B0D0F;
+    --surface: #17191D;
+    --surface-2: #1C1F24;
+    --hairline: #292C31;
+    --text: #F3F1EA;
+    --text-dim: #9A9C9E;
+    --text-faint: #5C5F63;
+    --accent: #3981FF;
+    --accent-dim: #275AB3;
+    --user-bubble: #1B2431;
+    --radius: 10px;
+  }
+
+  *{ box-sizing: border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  }
+
+  .eyebrow{
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  a{ color: inherit; }
+
+  /* ---------- layout ---------- */
+  .app{
+    display:grid;
+    grid-template-columns: 300px 1fr;
+    height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
+    height: 100dvh;
+  }
+
+  @media (max-width: 980px) and (min-width: 781px){
+    .app{ grid-template-columns: 240px 1fr; }
+    .identity{ padding: 24px 18px; }
+  }
+
+  /* ---------- identity panel ---------- */
+  .identity{
+    background: var(--panel);
+    border-right: 1px solid var(--hairline);
+    padding: 32px 28px;
+    display:flex;
+    flex-direction:column;
+    gap: 28px;
+    overflow-y:auto;
+  }
+
+  .mark{
+    width: 34px;
+    height: 34px;
+  }
+
+  .id-name{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    font-size: 20px;
+    margin: 14px 0 2px;
+    letter-spacing: -0.01em;
+  }
+
+  .id-role{
+    font-family:'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .status-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size: 12.5px;
+    color: var(--text-dim);
+  }
+  .status-dot{
+    width:7px; height:7px; border-radius:50%;
+    background:#3ED598;
+    box-shadow: 0 0 0 0 rgba(62,213,152,.5);
+    animation: pulse-dot 2.4s infinite;
+    flex-shrink:0;
+  }
+  @keyframes pulse-dot{
+    0%{ box-shadow: 0 0 0 0 rgba(62,213,152,.45); }
+    70%{ box-shadow: 0 0 0 6px rgba(62,213,152,0); }
+    100%{ box-shadow: 0 0 0 0 rgba(62,213,152,0); }
+  }
+
+  .id-bio{
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--text-dim);
+  }
+
+  .id-links{
+    display:flex;
+    flex-direction:column;
+    gap: 2px;
+    margin-top: auto;
+  }
+  .id-link{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding: 11px 2px;
+    border-top: 1px solid var(--hairline);
+    text-decoration:none;
+    font-size: 13px;
+    color: var(--text);
+    transition: color .15s ease;
+  }
+  .id-link:hover{ color: var(--accent); }
+  .id-link:hover .arrow{ transform: translate(2px,-2px); }
+  .arrow{ color: var(--text-faint); transition: transform .15s ease, color .15s ease; font-size:13px; }
+  .id-link:hover .arrow{ color: var(--accent); }
+
+  .id-location{
+    font-family:'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--text-faint);
+    letter-spacing: 0.04em;
+  }
+
+  /* ---------- chat column ---------- */
+  .chat-col{
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+    height:100%;
+  }
+
+  .mobile-header{
+    display:none;
+  }
+
+  .thread{
+    flex:1;
+    overflow-y:auto;
+    padding: 40px 0 20px;
+    scroll-behavior: smooth;
+  }
+  .thread-inner{
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0 32px;
+    display:flex;
+    flex-direction:column;
+    gap: 22px;
+    min-width: 0;
+  }
+
+  .msg{
+    display:flex;
+    gap: 12px;
+    max-width: 100%;
+    opacity:0;
+    transform: translateY(8px);
+    animation: rise .38s ease forwards;
+  }
+  @keyframes rise{
+    to{ opacity:1; transform: translateY(0); }
+  }
+
+  .msg.user{
+    align-self:flex-end;
+    flex-direction: row-reverse;
+  }
+
+  .avatar{
+    width: 26px; height:26px;
+    flex-shrink:0;
+    border-radius: 6px;
+    display:flex; align-items:center; justify-content:center;
+    margin-top: 2px;
+  }
+  .avatar.bot{ background: var(--surface-2); border:1px solid var(--hairline); }
+  .avatar.user{ background: var(--accent-dim); }
+  .avatar svg{ width:14px; height:14px; }
+
+  .bubble-col{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    max-width: min(480px, 100%);
+    min-width: 0;
+  }
+  .msg.user .bubble-col{ align-items:flex-end; }
+  .msg{ min-width:0; }
+
+  .bubble{
+    padding: 12px 15px;
+    border-radius: var(--radius);
+    font-size: 14.5px;
+    line-height: 1.62;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+  .msg.bot .bubble{
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-top-left-radius: 3px;
+  }
+  .msg.user .bubble{
+    background: var(--user-bubble);
+    border: 1px solid #24344A;
+    border-top-right-radius: 3px;
+    color: #DCE6F5;
+  }
+  .bubble p{ margin:0 0 10px; }
+  .bubble p:last-child{ margin-bottom:0; }
+  .bubble strong{ color: var(--text); font-weight:600; }
+  .bubble a.inline-link{
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-color: rgba(57,129,255,0.35);
+    text-underline-offset: 2px;
+  }
+
+  .msg-meta{
+    font-family:'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing:0.06em;
+    color: var(--text-faint);
+    padding: 0 4px;
+  }
+
+  /* typing indicator — block pulse, matches monogram language */
+  .typing{
+    display:flex;
+    gap:4px;
+    align-items:center;
+    padding: 14px 15px;
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-top-left-radius: 3px;
+    border-radius: var(--radius);
+    width: fit-content;
+  }
+  .typing span{
+    width:5px; height:5px;
+    background: var(--text-faint);
+    display:inline-block;
+    animation: block-pulse 1.1s infinite ease-in-out;
+  }
+  .typing span:nth-child(2){ animation-delay: .15s; }
+  .typing span:nth-child(3){ animation-delay: .3s; }
+  @keyframes block-pulse{
+    0%, 60%, 100%{ opacity:.3; transform: scale(0.85); }
+    30%{ opacity:1; background: var(--accent); transform: scale(1); }
+  }
+
+  /* ---------- suggestions ---------- */
+  .suggestions-wrap{
+    max-width: 640px;
+    margin: 0 auto;
+    width:100%;
+    padding: 4px 32px 14px;
+  }
+  .suggestions-label{
+    font-family:'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 10px;
+  }
+  .chips{
+    display:flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .chip{
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    color: var(--text-dim);
+    font-family:'Inter', sans-serif;
+    font-size: 12.5px;
+    padding: 8px 13px;
+    border-radius: 20px;
+    cursor:pointer;
+    transition: border-color .15s ease, color .15s ease, transform .1s ease;
+    white-space: nowrap;
+  }
+  .chip:hover{
+    border-color: var(--accent-dim);
+    color: var(--text);
+  }
+  .chip:active{ transform: scale(0.97); }
+
+  /* ---------- input ---------- */
+  .input-bar{
+    border-top: 1px solid var(--hairline);
+    background: var(--panel);
+    padding: 16px 32px 20px;
+  }
+  .input-inner{
+    max-width: 640px;
+    margin:0 auto;
+    display:flex;
+    align-items:flex-end;
+    gap: 10px;
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
+    padding: 6px 6px 6px 16px;
+    transition: border-color .15s ease;
+  }
+  .input-inner:focus-within{ border-color: var(--accent-dim); }
+
+  #composer{
+    flex:1;
+    background:transparent;
+    border:none;
+    outline:none;
+    resize:none;
+    color: var(--text);
+    font-family:'Inter', sans-serif;
+    font-size: 14.5px;
+    line-height: 1.5;
+    padding: 10px 0;
+    max-height: 120px;
+  }
+  #composer::placeholder{ color: var(--text-faint); }
+
+  .send-btn{
+    width: 34px; height:34px;
+    border-radius: 8px;
+    background: var(--accent);
+    border:none;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    flex-shrink:0;
+    transition: background .15s ease, opacity .15s ease, transform .1s ease;
+  }
+  .send-btn:hover{ background:#4C8CFF; }
+  .send-btn:active{ transform: scale(0.94); }
+  .send-btn:disabled{ opacity:.35; cursor:default; }
+  .send-btn svg{ width:15px; height:15px; }
+
+  .input-hint{
+    max-width:640px;
+    margin: 8px auto 0;
+    font-family:'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--text-faint);
+    text-align:center;
+  }
+
+  /* scrollbars */
+  .thread::-webkit-scrollbar, .identity::-webkit-scrollbar{ width:8px; }
+  .thread::-webkit-scrollbar-thumb, .identity::-webkit-scrollbar-thumb{ background:#25282D; border-radius:8px; }
+  .thread::-webkit-scrollbar-track, .identity::-webkit-scrollbar-track{ background:transparent; }
+
+  /* focus visibility */
+  .chip:focus-visible, .id-link:focus-visible, .send-btn:focus-visible, #composer:focus-visible{
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* ---------- mobile ---------- */
+  @media (max-width: 780px){
+    .app{ grid-template-columns: 1fr; }
+    .identity{ display:none; }
+    .mobile-header{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--hairline);
+      background: var(--panel);
+      flex-shrink:0;
+    }
+    .mobile-header .mark{ width:24px; height:24px; }
+    .mh-name{ font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:14.5px; }
+    .mh-role{ font-family:'Space Mono', monospace; font-size:9.5px; letter-spacing:.1em; color: var(--accent); text-transform:uppercase; }
+    .mh-status{ margin-left:auto; }
+    .thread-inner{ padding: 0 16px; }
+    .suggestions-wrap{ padding: 4px 16px 12px; }
+    .input-bar{ padding: 12px 14px 16px; }
+    .bubble-col{ max-width: 82%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ================= IDENTITY PANEL (desktop) ================= -->
+  <aside class="identity">
+    <div>
+      <svg class="mark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="4" y="4" width="14" height="14" rx="2" fill="#3981FF"/>
+        <rect x="22" y="4" width="14" height="14" rx="2" fill="#F3F1EA" fill-opacity="0.9"/>
+        <rect x="4" y="22" width="14" height="14" rx="2" fill="#F3F1EA" fill-opacity="0.9"/>
+        <rect x="22" y="22" width="14" height="14" rx="2" fill="#3981FF"/>
+      </svg>
+      <div class="id-name">Ben Mascarenhas</div>
+      <div class="id-role">Product Designer</div>
+    </div>
+
+    <div class="status-row">
+      <span class="status-dot"></span>
+      Open to opportunities
+    </div>
+
+    <p class="id-bio">
+      Communication Arts &amp; Design Practice grad from the University of Waterloo, now finishing a Master's in Digital Experience Innovation. Ask the assistant on the right anything — it's built from my actual work and experience.
+    </p>
+
+    <div class="id-location">WATERLOO, ON, CANADA</div>
+
+    <div class="id-links">
+      <a class="id-link" href="https://benmascdesigns.framer.website/" target="_blank" rel="noopener">
+        <span>Full portfolio</span><span class="arrow">↗</span>
+      </a>
+      <a class="id-link" href="https://www.linkedin.com/in/ben-mascarenhas-89354920b/" target="_blank" rel="noopener">
+        <span>LinkedIn</span><span class="arrow">↗</span>
+      </a>
+      <a class="id-link" href="mailto:ben.mascarenhas23@gmail.com">
+        <span>Email me</span><span class="arrow">↗</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ================= CHAT COLUMN ================= -->
+  <div class="chat-col">
+
+    <!-- mobile-only compact header -->
+    <div class="mobile-header">
+      <svg class="mark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="4" y="4" width="14" height="14" rx="2" fill="#3981FF"/>
+        <rect x="22" y="4" width="14" height="14" rx="2" fill="#F3F1EA" fill-opacity="0.9"/>
+        <rect x="4" y="22" width="14" height="14" rx="2" fill="#F3F1EA" fill-opacity="0.9"/>
+        <rect x="22" y="22" width="14" height="14" rx="2" fill="#3981FF"/>
+      </svg>
+      <div>
+        <div class="mh-name">Ben Mascarenhas</div>
+        <div class="mh-role">Product Designer</div>
+      </div>
+      <span class="mh-status status-dot"></span>
+    </div>
+
+    <div class="thread" id="thread">
+      <div class="thread-inner" id="threadInner"></div>
+    </div>
+
+    <div class="suggestions-wrap" id="suggestionsWrap">
+      <div class="suggestions-label">Try asking</div>
+      <div class="chips" id="chips"></div>
+    </div>
+
+    <div class="input-bar">
+      <div class="input-inner">
+        <textarea id="composer" rows="1" placeholder="Ask about my work, skills, or fit for a role…" aria-label="Message"></textarea>
+        <button class="send-btn" id="sendBtn" aria-label="Send message" disabled>
+          <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M17.5 2.5L9.5 10.5M17.5 2.5L12 17.5L9.5 10.5M17.5 2.5L2.5 8L9.5 10.5" stroke="#0B0D0F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="input-hint">This assistant only knows what's in Ben's profile below — no live data beyond that.</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+
+  /* ---------- mobile viewport height fix ----------
+     100vh is unreliable on mobile browsers (address bar show/hide).
+     Set a --vh custom property from the real inner height as a fallback
+     for browsers that don't support 100dvh. */
+  function setVH(){
+    document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px');
+  }
+  setVH();
+  window.addEventListener('resize', ()=>{ setVH(); scrollToBottom(); });
+  window.addEventListener('orientationchange', setVH);
+
+  /* ============================================================
+     CONTENT / RESPONSE ENGINE
+     ============================================================ */
+
+  const PORTFOLIO_URL = "https://benmascdesigns.framer.website/";
+  const LINKEDIN_URL = "https://www.linkedin.com/in/ben-mascarenhas-89354920b/";
+  const EMAIL = "ben.mascarenhas23@gmail.com";
+
+  // Each topic: id, matcher (returns true/false on lowercased input), response builder (returns HTML string, can be array of paragraphs)
+  const topics = [
+
+    {
+      id: "greeting",
+      match: t => /\b(hi|hello|hey|yo|sup|hiya)\b/.test(t) && t.length < 25,
+      response: () => [
+        `Hey — I'm an assistant trained on Ben's background, projects, and experience. Ask me something like <em>"what's he looking for"</em> or <em>"tell me about a project"</em>, or just pick a suggestion below.`
+      ]
+    },
+
+    {
+      id: "target-roles",
+      match: t => /(target role|what role|what.*looking for|what kind of job|what.*applying|position|role.*interest|what.*want to do)/.test(t),
+      response: () => [
+        `Ben's targeting <strong>UX Designer</strong> and <strong>Product Designer</strong> roles.`,
+        `The short version of why: he wants to build products that actually improve the experience of using them — not just look polished. He's also focused on giving products a real point of view, since so much design is starting to look interchangeable now that AI tools make "fine" design easy to produce. Standing out on craft and personality is the part he cares about.`
+      ]
+    },
+
+    {
+      id: "big-tech-fit",
+      match: t => /(google|apple|openai|big tech|established compan|why.*good fit.*(google|apple|openai)|large compan)/.test(t),
+      response: () => [
+        `For companies like <strong>Google, Apple, or OpenAI</strong>: Ben's drawn to them because their design reputation is earned — it directly shows up in how well their products perform and how people actually use them. He wants to be in an environment with that level of craft and rigor, and learn from people operating at that bar.`,
+        `He'd bring UX research fundamentals (interviews, usability testing, competitive analysis) plus hands-on interface and prototyping skills in Figma and Framer — grounded in real shipped work, not just coursework.`
+      ]
+    },
+
+    {
+      id: "startup-fit",
+      match: t => /(startup|early.stage|why.*good fit.*startup|small compan)/.test(t),
+      response: () => [
+        `For <strong>early-stage startups</strong>, the appeal is the opposite reason: Ben wants to help something get good design from day one, rather than joining once the system's already set. Being part of that ground-floor process — shaping the product and the design foundation together — is what interests him there.`,
+        `Practically, that means someone comfortable wearing multiple hats: research, UI, and enough ops/business context to move fast, which is close to what he's doing right now in his current role.`
+      ]
+    },
+
+    {
+      id: "fit-general",
+      match: t => /(good fit|why.*hire|why should)/.test(t),
+      response: () => [
+        `Depends on the type of company — Ben's angle is a bit different for big tech versus startups. Ask about either one specifically and I'll break it down, or ask about his projects and skills for the more general picture.`
+      ]
+    },
+
+    {
+      id: "skills",
+      match: t => /(skill|experience|tool|figma|framer|photoshop|what can.*do|background)/.test(t),
+      response: () => [
+        `Ben works primarily in <strong>Figma</strong> and <strong>Framer</strong>, with <strong>Adobe Photoshop/Adobe Suite</strong> for graphic work.`,
+        `On the process side: wireframing, prototyping, information architecture, and interaction design, backed by real UX research — user interviews, usability testing, survey design, competitive analysis, and running focus groups.`,
+        `Right now he's in a <strong>Business Operations</strong> role at Nexxus (about 5 months in), where he does hands-on web design work, builds slide decks and presentations, and handles general operations tasks. It's given him a few live, shipped websites and a good amount of stakeholder-facing experience alongside the design work.`
+      ]
+    },
+
+    {
+      id: "nexxus",
+      match: t => /(nexxus|current job|current role|where.*work now|day.job)/.test(t),
+      response: () => [
+        `Ben's currently in <strong>Business Operations at Nexxus</strong>, about 5 months in. The role's a mix of web design work, building slide decks and presentations, and general operations tasks. The most concrete output so far is new company websites he's helped design and get launched — he'd tell you it's early days on the metrics front, but the shipped work speaks for itself.`
+      ]
+    },
+
+    {
+      id: "education",
+      match: t => /(education|degree|school|university|master|study|studied|waterloo)/.test(t),
+      response: () => [
+        `Ben has a B.A. in <strong>Communication Arts and Design Practice (Honours)</strong> from the University of Waterloo, with a minor in Applied Mathematics, expected to finish April 2026.`,
+        `He's now going straight into a <strong>Master's in Digital Experience Innovation</strong>, also at Waterloo — continuing to sharpen the design side while picking up more of the strategy and innovation side of digital products.`
+      ]
+    },
+
+    {
+      id: "projects-general",
+      match: t => /(project|portfolio|case stud|work.*seen|what.*built|what.*made|show me)/.test(t),
+      response: () => [
+        `A few worth knowing about:`,
+        `<strong>ModularOSM</strong> — full brand identity, website, and pitch deck for a modular data-centre manufacturing company. Took 1st place at the Origin Designathon (UW/UX).<br>
+         <strong>Focus Flow</strong> — an AI-assisted study app built through the University of Waterloo Futures Lab, in partnership with Google. Two full prototype rounds based on real user feedback.<br>
+         <strong>Game Finder</strong> — a mobile-first prototype helping students find pickup basketball games, built on 5 user interviews and a focus group.<br>
+         <strong>SDC Website Rebrand</strong> — research-led redesign for a non-profit, presented directly to their Director and Head of Marketing.<br>
+         <strong>Mascd Studios</strong> — his freelance practice: 5 launched business sites with a 20–40% lift in user engagement.`,
+        `Ask about any one of these by name and I'll go deeper, or check the <a class="inline-link" href="${PORTFOLIO_URL}" target="_blank" rel="noopener">full portfolio</a> for the complete case studies.`
+      ]
+    },
+
+    {
+      id: "modularosm",
+      match: t => /modular ?osm|mosm/.test(t),
+      response: () => [
+        `<strong>ModularOSM</strong> — Ben built the full brand identity for a modular data-centre manufacturing company: logo, color system, typography, three key website pages, and an investor-facing pitch deck template, all in about 2.5 weeks using Figma and Framer.`,
+        `The brand needed to read as precise and industrial — the mark itself is built from repeating server-rack forms. It won <strong>1st place at the Origin Designathon</strong>, hosted by UW/UX.`
+      ]
+    },
+
+    {
+      id: "focusflow",
+      match: t => /focus ?flow/.test(t),
+      response: () => [
+        `<strong>Focus Flow</strong> — an interactive study app built over 8 weeks as part of the University of Waterloo Futures Lab's first cohort, done in partnership with Google. It breaks study sessions into structured modules mixing reading, quizzing, and short game breaks to reduce burnout.`,
+        `Ben led UX design across two full prototype rounds — the first surfaced real usability issues (confusing entry points, no way to navigate back, a Pomodoro timer nobody used), and the second addressed them directly with clearer CTAs, better contrast, and working image generation. Good example of his iterative, feedback-driven process.`
+      ]
+    },
+
+    {
+      id: "gamefinder",
+      match: t => /game ?finder|pickup basketball/.test(t),
+      response: () => [
+        `<strong>Game Finder</strong> — a mobile-first prototype to help university students find and join pickup basketball games. Ben ran 5 user interviews and led a focus group, then used that research to redesign the user flows and cut down on friction in the join-a-game experience.`
+      ]
+    },
+
+    {
+      id: "sdc",
+      match: t => /\bsdc\b|non.?profit rebrand/.test(t),
+      response: () => [
+        `<strong>SDC Website Rebrand</strong> — Ben led UX research and interface redesign for a local non-profit. He ran a competitive analysis, restructured the information architecture and page layouts, and resolved 5 key usability issues — then presented the refreshed solution directly to the organization's Director and Head of Marketing.`
+      ]
+    },
+
+    {
+      id: "mascd",
+      match: t => /mascd/.test(t),
+      response: () => [
+        `<strong>Mascd Studios</strong> is Ben's own freelance web design practice, running since January 2025. He's designed and launched 5 business websites, handling everything end-to-end — UX/UI, on-page SEO, Google Search Console integration, and working directly with stakeholders. Those sites saw a 20–40% increase in user engagement.`
+      ]
+    },
+
+    {
+      id: "contact",
+      match: t => /(contact|reach|email|get in touch|hire|linkedin)/.test(t),
+      response: () => [
+        `Best ways to reach Ben: email at <a class="inline-link" href="mailto:${EMAIL}">${EMAIL}</a>, or <a class="inline-link" href="${LINKEDIN_URL}" target="_blank" rel="noopener">LinkedIn</a>. The <a class="inline-link" href="${PORTFOLIO_URL}" target="_blank" rel="noopener">full portfolio</a> has all the case studies in detail if you want to see the work itself.`
+      ]
+    },
+
+    {
+      id: "basketball",
+      match: t => /basketball|varsity|athlete|sport/.test(t),
+      response: () => [
+        `Outside of design, Ben played Varsity Men's Basketball at the University of Waterloo (2023–2024) and University of Windsor (2020–2023), and was named a USports Academic All-Canadian three years running (2021, 2022, 2023) — balancing competitive athletics with academics.`
+      ]
+    },
+
+  ];
+
+  const fallback = () => [
+    `I don't have a specific answer for that one — I'm scoped to Ben's roles, projects, skills, and background. Try one of the suggestions below, or ask about a specific project by name.`
+  ];
+
+  function getResponse(raw){
+    const t = raw.toLowerCase().trim();
+    for(const topic of topics){
+      if(topic.match(t)) return topic.response();
+    }
+    return fallback();
+  }
+
+  /* ============================================================
+     SUGGESTED QUESTIONS
+     ============================================================ */
+  const suggestions = [
+    "What roles are you looking for?",
+    "Tell me about your projects",
+    "Why would you be a good fit at a company like Google?",
+    "What about early-stage startups?",
+    "What are your skills?",
+    "What's your current role?",
+  ];
+
+  /* ============================================================
+     DOM / RENDER LOGIC
+     ============================================================ */
+  const thread = document.getElementById('thread');
+  const threadInner = document.getElementById('threadInner');
+  const chipsEl = document.getElementById('chips');
+  const composer = document.getElementById('composer');
+  const sendBtn = document.getElementById('sendBtn');
+  const suggestionsWrap = document.getElementById('suggestionsWrap');
+
+  function scrollToBottom(){
+    requestAnimationFrame(()=>{ thread.scrollTop = thread.scrollHeight; });
+  }
+
+  function botAvatarSVG(){
+    return `<svg viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="6.5" height="6.5" rx="1.3" fill="#3981FF"/><rect x="11.5" y="2" width="6.5" height="6.5" rx="1.3" fill="#F3F1EA" fill-opacity="0.85"/><rect x="2" y="11.5" width="6.5" height="6.5" rx="1.3" fill="#F3F1EA" fill-opacity="0.85"/><rect x="11.5" y="11.5" width="6.5" height="6.5" rx="1.3" fill="#3981FF"/></svg>`;
+  }
+  function userAvatarSVG(){
+    return `<svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3.2" fill="#DCE6F5"/><path d="M3.5 17c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6" stroke="#DCE6F5" stroke-width="1.4" stroke-linecap="round"/></svg>`;
+  }
+
+  function addMessage(role, htmlParagraphs){
+    const msg = document.createElement('div');
+    msg.className = 'msg ' + (role === 'user' ? 'user' : 'bot');
+
+    const avatar = document.createElement('div');
+    avatar.className = 'avatar ' + (role === 'user' ? 'user' : 'bot');
+    avatar.innerHTML = role === 'user' ? userAvatarSVG() : botAvatarSVG();
+
+    const col = document.createElement('div');
+    col.className = 'bubble-col';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    const html = Array.isArray(htmlParagraphs) ? htmlParagraphs : [htmlParagraphs];
+    bubble.innerHTML = html.map(p => `<p>${p}</p>`).join('');
+
+    col.appendChild(bubble);
+    msg.appendChild(avatar);
+    msg.appendChild(col);
+    threadInner.appendChild(msg);
+    scrollToBottom();
+  }
+
+  function showTyping(){
+    const msg = document.createElement('div');
+    msg.className = 'msg bot';
+    msg.id = 'typingMsg';
+
+    const avatar = document.createElement('div');
+    avatar.className = 'avatar bot';
+    avatar.innerHTML = botAvatarSVG();
+
+    const col = document.createElement('div');
+    col.className = 'bubble-col';
+    col.innerHTML = `<div class="typing"><span></span><span></span><span></span></div>`;
+
+    msg.appendChild(avatar);
+    msg.appendChild(col);
+    threadInner.appendChild(msg);
+    scrollToBottom();
+  }
+
+  function hideTyping(){
+    const el = document.getElementById('typingMsg');
+    if(el) el.remove();
+  }
+
+  function handleUserInput(text){
+    if(!text.trim()) return;
+    addMessage('user', escapeHtml(text));
+    composer.value = '';
+    autosize();
+    updateSendState();
+    hideSuggestions(true);
+
+    showTyping();
+    const delay = 500 + Math.random() * 500;
+    setTimeout(()=>{
+      hideTyping();
+      const response = getResponse(text);
+      addMessage('bot', response);
+      // occasionally re-show a trimmed suggestion row after response settles
+    }, delay);
+  }
+
+  function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function hideSuggestions(temporary){
+    suggestionsWrap.style.display = 'none';
+  }
+
+  function renderChips(){
+    chipsEl.innerHTML = '';
+    suggestions.forEach(q=>{
+      const chip = document.createElement('button');
+      chip.className = 'chip';
+      chip.type = 'button';
+      chip.textContent = q;
+      chip.addEventListener('click', ()=> handleUserInput(q));
+      chipsEl.appendChild(chip);
+    });
+  }
+
+  function autosize(){
+    composer.style.height = 'auto';
+    composer.style.height = Math.min(composer.scrollHeight, 120) + 'px';
+  }
+
+  function updateSendState(){
+    sendBtn.disabled = composer.value.trim().length === 0;
+  }
+
+  composer.addEventListener('input', ()=>{ autosize(); updateSendState(); });
+  composer.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter' && !e.shiftKey){
+      e.preventDefault();
+      if(composer.value.trim()) handleUserInput(composer.value);
+    }
+  });
+  sendBtn.addEventListener('click', ()=>{
+    if(composer.value.trim()) handleUserInput(composer.value);
+  });
+
+  /* ============================================================
+     INIT
+     ============================================================ */
+  function init(){
+    renderChips();
+    showTyping();
+    setTimeout(()=>{
+      hideTyping();
+      addMessage('bot', [
+        `Hey, I'm an assistant built on Ben Mascarenhas's background — his roles, projects, skills, and what he's looking for next.`,
+        `Ask me anything, or tap a suggestion below to get started.`
+      ]);
+    }, 600);
+  }
+
+  init();
+
+})();
+</script>
+
+</body>
+</html>
