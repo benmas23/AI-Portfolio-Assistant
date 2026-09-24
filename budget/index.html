@@ -1,0 +1,716 @@
+<!doctype html>
+<title>Monthly Ledger</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EEF2F0; --surface:#FFFFFF; --surface-2:#F6F8F7; --line:#D6DEDA;
+    --ink:#15201C; --muted:#5B6964; --faint:#8C9994;
+    --accent:#0E6B57; --accent-soft:#D5EAE3; --on-accent:#FFFFFF;
+    --warn:#A86A12; --warn-soft:#F6E7CC; --over:#B83A26; --over-soft:#F6DAD4;
+    --radius:8px;
+    --display:'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+    --body:'Figtree', system-ui, -apple-system, sans-serif;
+    --mono:'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme:dark;
+      --bg:#0D1311; --surface:#151D1A; --surface-2:#1B2521; --line:#2A3632;
+      --ink:#E4EBE8; --muted:#9AA8A3; --faint:#67756F;
+      --accent:#4CC3A1; --accent-soft:#193A31; --on-accent:#08231B;
+      --warn:#E3A745; --warn-soft:#3A2D14; --over:#EE7A63; --over-soft:#41211B;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --bg:#0D1311; --surface:#151D1A; --surface-2:#1B2521; --line:#2A3632;
+    --ink:#E4EBE8; --muted:#9AA8A3; --faint:#67756F;
+    --accent:#4CC3A1; --accent-soft:#193A31; --on-accent:#08231B;
+    --warn:#E3A745; --warn-soft:#3A2D14; --over:#EE7A63; --over-soft:#41211B;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{
+    background:var(--bg); color:var(--ink);
+    font:15px/1.5 var(--body);
+    -webkit-font-smoothing:antialiased;
+    padding-inline:16px; padding-block:20px 48px;
+  }
+  @media (prefers-reduced-motion: reduce){ *{ transition:none !important; animation:none !important; } }
+  .wrap{ max-width:1120px; margin:0 auto; display:grid; gap:20px; }
+  .num{ font-family:var(--mono); font-variant-numeric:tabular-nums; }
+  .label{ font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:var(--muted); font-weight:600; }
+  h1,h2{ font-family:var(--display); margin:0; text-wrap:balance; }
+  h2{ font-size:18px; font-weight:700; }
+  button,input,select{ font:inherit; color:inherit; }
+  :focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+  /* header */
+  header{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px 20px; }
+  .brand{ display:flex; align-items:baseline; gap:10px; }
+  .brand h1{ font-size:26px; font-weight:700; letter-spacing:-.01em; }
+  .brand span{ color:var(--muted); font-size:13px; }
+  .month-nav{ display:flex; align-items:center; gap:4px; background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:4px; }
+  .month-nav strong{ font-family:var(--display); font-weight:500; min-width:128px; text-align:center; font-size:16px; }
+  .icon-btn{ width:32px; height:32px; border-radius:999px; border:0; background:transparent; cursor:pointer; display:grid; place-items:center; color:var(--muted); }
+  .icon-btn:hover{ background:var(--surface-2); color:var(--ink); }
+  .head-actions{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+
+  .btn{ border:1px solid var(--line); background:var(--surface); border-radius:6px; padding:7px 12px; cursor:pointer; font-size:13px; font-weight:500; }
+  .btn:hover{ border-color:var(--muted); }
+  .btn.primary{ background:var(--accent); border-color:var(--accent); color:var(--on-accent); }
+  .btn.primary:hover{ filter:brightness(1.08); }
+  .btn.ghost{ border-color:transparent; background:transparent; color:var(--muted); }
+  .btn.ghost:hover{ color:var(--ink); background:var(--surface-2); }
+  .btn.danger{ color:var(--over); }
+
+  .notice{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 16px; padding:10px 14px; border-radius:var(--radius); background:var(--warn-soft); color:var(--ink); font-size:13px; }
+
+  /* summary */
+  .summary{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:20px; display:grid; gap:18px; }
+  .figures{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:16px; }
+  .figure{ display:grid; gap:2px; }
+  .figure .big{ font-family:var(--mono); font-variant-numeric:tabular-nums; font-size:26px; font-weight:600; letter-spacing:-.02em; line-height:1.2; overflow-wrap:anywhere; }
+  .figure .sub{ font-size:12px; color:var(--muted); }
+  .figure.left .big{ color:var(--accent); }
+  .figure.left.neg .big{ color:var(--over); }
+  .income-edit{ display:flex; align-items:center; gap:6px; }
+  .income-edit input{ width:100%; max-width:170px; font-family:var(--mono); font-size:22px; font-weight:600; border:0; border-bottom:1px dashed var(--line); background:transparent; padding:0; }
+  .income-edit input:focus{ outline:none; border-bottom-color:var(--accent); }
+
+  .stack{ display:grid; gap:6px; }
+  .stackbar{ display:flex; height:12px; border-radius:3px; overflow:hidden; background:var(--surface-2); }
+  .stackbar i{ display:block; height:100%; }
+  .stackbar i + i{ border-left:2px solid var(--surface); }
+  .legend{ display:flex; flex-wrap:wrap; gap:4px 14px; font-size:12px; color:var(--muted); }
+  .legend b{ display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:5px; vertical-align:-1px; }
+
+  /* grid */
+  .cols{ display:grid; grid-template-columns:minmax(0,1.45fr) minmax(0,1fr); gap:20px; align-items:start; }
+  .panel{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); display:grid; }
+  .panel > .hd{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding:16px 18px 12px; }
+  .panel > .hd .num{ color:var(--muted); font-size:13px; }
+  .side{ display:grid; gap:20px; }
+
+  form.add{ display:grid; grid-template-columns:138px minmax(0,1fr) 124px 96px auto; gap:8px; padding:0 18px 14px; }
+  form.add.subs{ grid-template-columns:minmax(0,1fr) 96px; }
+  form.add.subs .row2{ grid-column:1 / -1; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto; gap:8px; }
+  .field{ border:1px solid var(--line); background:var(--surface-2); border-radius:6px; padding:7px 9px; min-width:0; width:100%; font-size:14px; }
+  .field:focus{ outline:none; border-color:var(--accent); background:var(--surface); }
+  input[type=number].field{ font-family:var(--mono); }
+  .form-err{ grid-column:1/-1; color:var(--over); font-size:12px; margin:0; }
+
+  .filters{ display:flex; gap:6px; flex-wrap:wrap; padding:0 18px 10px; }
+  .chip{ border:1px solid var(--line); background:transparent; border-radius:999px; padding:3px 10px; font-size:12px; cursor:pointer; color:var(--muted); }
+  .chip[aria-pressed=true]{ background:var(--ink); color:var(--surface); border-color:var(--ink); }
+
+  .list{ list-style:none; margin:0; padding:0; border-top:1px solid var(--line); }
+  .list li{ display:grid; grid-template-columns:52px minmax(0,1fr) auto 32px; gap:10px; align-items:center; padding:9px 18px; border-bottom:1px solid var(--line); }
+  .list li:last-child{ border-bottom:0; }
+  .list .date{ font-family:var(--mono); font-size:12px; color:var(--muted); }
+  .list .what{ min-width:0; }
+  .list .what div{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .list .what small{ color:var(--muted); font-size:12px; display:flex; align-items:center; gap:6px; }
+  .dot{ width:8px; height:8px; border-radius:2px; display:inline-block; flex:none; }
+  .list .amt{ font-family:var(--mono); font-variant-numeric:tabular-nums; font-weight:600; text-align:right; }
+  .del{ opacity:.35; }
+  .list li:hover .del, .del:focus-visible{ opacity:1; }
+  .empty{ padding:24px 18px; color:var(--muted); font-size:14px; border-top:1px solid var(--line); }
+
+  .subs-list li{ grid-template-columns:minmax(0,1fr) auto 32px; }
+  .pill{ font-size:11px; font-weight:600; padding:1px 7px; border-radius:999px; background:var(--surface-2); color:var(--muted); border:1px solid var(--line); white-space:nowrap; }
+  .pill.soon{ background:var(--warn-soft); color:var(--warn); border-color:transparent; }
+  .pill.paused{ text-decoration:line-through; }
+  .sub-amt{ text-align:right; }
+  .sub-amt .num{ font-weight:600; display:block; }
+  .sub-amt small{ color:var(--muted); font-size:11px; }
+  li.is-paused .what, li.is-paused .sub-amt{ opacity:.5; }
+  .linkish{ border:0; background:none; padding:0; color:var(--muted); font-size:12px; cursor:pointer; text-decoration:underline; text-underline-offset:2px; }
+
+  .budgets{ display:grid; gap:14px; padding:4px 18px 18px; }
+  .brow{ display:grid; gap:5px; }
+  .brow .top{ display:flex; justify-content:space-between; align-items:center; gap:10px; font-size:14px; }
+  .brow .top .num{ font-size:12px; color:var(--muted); display:flex; align-items:center; gap:4px; }
+  .brow input{ width:74px; font-family:var(--mono); font-size:12px; border:1px solid transparent; background:transparent; text-align:right; padding:1px 4px; border-radius:4px; color:var(--muted); }
+  .brow input:hover, .brow input:focus{ border-color:var(--line); background:var(--surface-2); outline:none; color:var(--ink); }
+  .meter{ height:6px; border-radius:3px; background:var(--surface-2); overflow:hidden; }
+  .meter i{ display:block; height:100%; background:var(--accent); border-radius:3px; }
+  .meter.warn i{ background:var(--warn); }
+  .meter.over i{ background:var(--over); }
+  .brow .state{ font-size:11px; font-weight:600; }
+  .brow .state.warn{ color:var(--warn); } .brow .state.over{ color:var(--over); }
+
+  .trend{ padding:0 18px 16px; }
+  .trend svg{ display:block; width:100%; height:auto; }
+  .trend text{ font-family:var(--mono); font-size:10px; fill:var(--muted); }
+
+  footer{ display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px 16px; font-size:12px; color:var(--faint); }
+  footer .actions{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+
+  dialog{ border:1px solid var(--line); border-radius:var(--radius); background:var(--surface); color:var(--ink); padding:20px; max-width:min(420px, calc(100vw - 32px)); }
+  dialog::backdrop{ background:rgba(8,14,12,.45); }
+  dialog p{ margin:0 0 16px; }
+  dialog .row{ display:flex; gap:8px; justify-content:flex-end; }
+  .toast{ position:fixed; left:50%; bottom:calc(20px + env(safe-area-inset-bottom, 0px)); transform:translateX(-50%); background:var(--ink); color:var(--surface); padding:8px 14px; border-radius:6px; font-size:13px; }
+
+  @media (max-width: 900px){
+    .cols{ grid-template-columns:minmax(0,1fr); }
+    .figures{ grid-template-columns:repeat(2, minmax(0,1fr)); }
+  }
+  @media (max-width: 620px){
+    form.add{ grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+    form.add .desc{ grid-column:1 / -1; order:-1; }
+    form.add .btn.primary{ grid-column:1 / -1; }
+    form.add.subs .row2{ grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+    form.add.subs .row2 .btn{ grid-column:1 / -1; }
+    .figure .big{ font-size:21px; }
+    .brand span{ display:none; }
+    .list li{ padding-inline:14px; }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="brand"><h1>Monthly Ledger</h1><span>expenses &amp; subscriptions</span></div>
+    <div class="month-nav" role="group" aria-label="Month">
+      <button class="icon-btn" id="prevMonth" aria-label="Previous month">&#8249;</button>
+      <strong id="monthLabel">—</strong>
+      <button class="icon-btn" id="nextMonth" aria-label="Next month">&#8250;</button>
+    </div>
+    <div class="head-actions">
+      <select id="currency" class="field" aria-label="Currency" style="width:auto">
+        <option value="USD">USD $</option><option value="GBP">GBP £</option><option value="EUR">EUR €</option>
+        <option value="CAD">CAD $</option><option value="AUD">AUD $</option><option value="INR">INR ₹</option>
+      </select>
+    </div>
+  </header>
+
+  <div class="notice" id="exampleNotice" hidden>
+    <span>These are example figures so you can see how it works. Your own entries replace them.</span>
+    <button class="btn" id="startFresh">Clear examples and start</button>
+  </div>
+
+  <section class="summary" aria-label="Month summary">
+    <div class="figures">
+      <div class="figure">
+        <span class="label"><label for="income">Income this month</label></span>
+        <div class="income-edit"><span class="num" id="curSym" style="font-size:20px;color:var(--muted)">$</span><input id="income" type="number" min="0" step="1" inputmode="decimal"></div>
+        <span class="sub">Click the figure to edit</span>
+      </div>
+      <div class="figure"><span class="label">Expenses</span><span class="big" id="sumExp">—</span><span class="sub" id="sumExpN"></span></div>
+      <div class="figure"><span class="label">Subscriptions</span><span class="big" id="sumSubs">—</span><span class="sub" id="sumSubsN"></span></div>
+      <div class="figure left" id="leftFig"><span class="label">Left to spend</span><span class="big" id="sumLeft">—</span><span class="sub" id="sumLeftSub"></span></div>
+    </div>
+    <div class="stack">
+      <div class="stackbar" id="stackbar" role="img" aria-label="Spending by category"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+  </section>
+
+  <div class="cols">
+    <section class="panel" aria-labelledby="expHd">
+      <div class="hd"><h2 id="expHd">Expenses</h2><span class="num" id="expCount"></span></div>
+      <form class="add" id="expForm" autocomplete="off">
+        <input class="field" id="expDate" type="date" aria-label="Date" required>
+        <input class="field desc" id="expDesc" placeholder="What was it? e.g. Groceries at Aldi" aria-label="Description" required maxlength="80">
+        <select class="field" id="expCat" aria-label="Category"></select>
+        <input class="field" id="expAmt" type="number" min="0.01" step="0.01" placeholder="0.00" aria-label="Amount" inputmode="decimal" required>
+        <button class="btn primary" type="submit">Add</button>
+        <p class="form-err" id="expErr" hidden></p>
+      </form>
+      <div class="filters" id="filters" role="group" aria-label="Filter by category"></div>
+      <ul class="list" id="expList"></ul>
+      <div class="empty" id="expEmpty" hidden>No expenses logged for this month yet. Add the first one above.</div>
+    </section>
+
+    <div class="side">
+      <section class="panel" aria-labelledby="subHd">
+        <div class="hd"><h2 id="subHd">Subscriptions</h2><span class="num" id="subYear"></span></div>
+        <form class="add subs" id="subForm" autocomplete="off">
+          <input class="field" id="subName" placeholder="Name, e.g. Spotify" aria-label="Subscription name" required maxlength="60">
+          <input class="field" id="subAmt" type="number" min="0.01" step="0.01" placeholder="0.00" aria-label="Price" inputmode="decimal" required>
+          <div class="row2">
+            <select class="field" id="subCycle" aria-label="Billing cycle">
+              <option value="monthly">Monthly</option><option value="yearly">Yearly</option><option value="weekly">Weekly</option>
+            </select>
+            <input class="field" id="subStart" type="date" aria-label="First billing date" title="First billing date" required>
+            <button class="btn primary" type="submit">Add</button>
+          </div>
+          <p class="form-err" id="subErr" hidden></p>
+        </form>
+        <ul class="list subs-list" id="subList"></ul>
+        <div class="empty" id="subEmpty" hidden>No subscriptions yet. Add Netflix, gym, phone plan and the like.</div>
+      </section>
+
+      <section class="panel" aria-labelledby="budHd">
+        <div class="hd"><h2 id="budHd">Category budgets</h2><span class="num" id="budTotal"></span></div>
+        <div class="budgets" id="budgets"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="trendHd">
+        <div class="hd"><h2 id="trendHd">Last 6 months</h2><span class="num">spent per month</span></div>
+        <div class="trend" id="trend"></div>
+      </section>
+    </div>
+  </div>
+
+  <footer>
+    <span id="storeNote">Saved in this browser.</span>
+    <div class="actions">
+      <button class="btn ghost" id="exportBtn">Export data</button>
+      <label class="btn ghost" for="importFile" style="cursor:pointer">Import data</label>
+      <input type="file" id="importFile" accept="application/json,.json" hidden>
+    </div>
+  </footer>
+</div>
+
+<dialog id="confirmDlg">
+  <p id="confirmMsg"></p>
+  <div class="row"><button class="btn" id="confirmNo">Cancel</button><button class="btn primary" id="confirmYes">Confirm</button></div>
+</dialog>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(() => {
+  // ---------- constants ----------
+  const CATEGORIES = [
+    { id:'housing',   name:'Housing',       color:'#2F6F9F' },
+    { id:'groceries', name:'Groceries',     color:'#3E9B6B' },
+    { id:'dining',    name:'Eating out',    color:'#D08A2E' },
+    { id:'transport', name:'Transport',     color:'#7B61B8' },
+    { id:'utilities', name:'Bills',         color:'#4E8D9A' },
+    { id:'shopping',  name:'Shopping',      color:'#C0567A' },
+    { id:'health',    name:'Health',        color:'#8C9A3C' },
+    { id:'fun',       name:'Fun',           color:'#D4624A' },
+    { id:'other',     name:'Other',         color:'#7E8A86' },
+  ];
+  const SUBS_COLOR = '#1C8A8A';
+  const CAT = Object.fromEntries(CATEGORIES.map(c => [c.id, c]));
+  const $ = id => document.getElementById(id);
+
+  // ---------- dates ----------
+  const pad = n => String(n).padStart(2, '0');
+  const today = new Date();
+  const todayISO = `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
+  const monthKey = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
+  const shiftMonth = (key, n) => { const [y,m] = key.split('-').map(Number); return monthKey(new Date(y, m-1+n, 1)); };
+  const monthName = (key, style='long') => { const [y,m] = key.split('-').map(Number); return new Date(y, m-1, 1).toLocaleDateString(undefined, { month:style, year: style==='long' ? 'numeric' : undefined }); };
+  const parseISO = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
+  const daysInMonth = key => { const [y,m] = key.split('-').map(Number); return new Date(y, m, 0).getDate(); };
+
+  // ---------- storage: artifact db when available, else localStorage ----------
+  const local = {
+    kind:'local',
+    async get(k){ try { const v = localStorage.getItem('ledger:'+k); return v ? JSON.parse(v) : null; } catch { return null; } },
+    async set(k, v){ try { localStorage.setItem('ledger:'+k, JSON.stringify(v)); } catch {} },
+  };
+  const makeDbStore = db => ({
+    kind:'db',
+    path: k => k === 'settings' ? 'ledger/settings' : 'months/' + k.replace('month:', ''),
+    async get(k){ const s = await db.doc(this.path(k)).get(); return s.exists ? structuredClone(s.data()) : null; },
+    async set(k, v){ await db.doc(this.path(k)).set(v); },
+  });
+  let store = local;
+
+  // ---------- state ----------
+  let settings = null;         // { currency, income, budgets:{cat:amt}, subs:[...] }
+  const months = {};           // key -> { expenses:[...] }
+  let current = monthKey(today);
+  let filter = 'all';
+  let isExample = false;
+
+  const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+
+  function exampleData(){
+    const key = monthKey(today), prev = shiftMonth(key, -1), prev2 = shiftMonth(key, -2);
+    const d = (k, day) => `${k}-${pad(Math.min(day, daysInMonth(k)))}`;
+    const cap = day => Math.min(day, today.getDate());
+    const e = (k, day, desc, cat, amount) => ({ id:uid(), date:d(k, day), desc, cat, amount });
+    const s = {
+      currency:'USD', income:4800,
+      budgets:{ housing:1600, groceries:450, dining:220, transport:160, utilities:180, shopping:200, fun:150 },
+      subs:[
+        { id:uid(), name:'Netflix', amount:15.49, cycle:'monthly', start:'2025-03-12', active:true },
+        { id:uid(), name:'Spotify', amount:11.99, cycle:'monthly', start:'2024-11-04', active:true },
+        { id:uid(), name:'iCloud+ 200 GB', amount:2.99, cycle:'monthly', start:'2024-06-21', active:true },
+        { id:uid(), name:'Gym membership', amount:39, cycle:'monthly', start:'2026-01-02', active:true },
+        { id:uid(), name:'Figma Professional', amount:180, cycle:'yearly', start:'2025-10-08', active:true },
+        { id:uid(), name:'NYT Digital', amount:4, cycle:'weekly', start:'2026-02-01', active:false },
+      ],
+    };
+    const m = {};
+    m[key] = { expenses:[
+      e(key, 1, 'Rent', 'housing', 1550),
+      e(key, cap(2), 'Trader Joe’s', 'groceries', 86.40),
+      e(key, cap(3), 'Electric bill', 'utilities', 74.18),
+      e(key, cap(5), 'Metro card top-up', 'transport', 40),
+      e(key, cap(6), 'Thai takeaway', 'dining', 32.50),
+      e(key, cap(9), 'Whole Foods', 'groceries', 112.75),
+      e(key, cap(11), 'Running shoes', 'shopping', 129.99),
+      e(key, cap(13), 'Concert tickets', 'fun', 68),
+      e(key, cap(14), 'Brunch with friends', 'dining', 41.20),
+      e(key, cap(16), 'Pharmacy', 'health', 18.60),
+      e(key, cap(18), 'Costco run', 'groceries', 164.32),
+      e(key, cap(20), 'Internet', 'utilities', 60),
+      e(key, cap(21), 'Dinner out', 'dining', 88.40),
+    ]};
+    [[prev, 1.0], [prev2, 0.9]].forEach(([k, f]) => {
+      m[k] = { expenses:[
+        e(k, 1, 'Rent', 'housing', 1550),
+        e(k, 4, 'Groceries', 'groceries', Math.round(410*f)),
+        e(k, 8, 'Bills', 'utilities', Math.round(140*f)),
+        e(k, 12, 'Eating out', 'dining', Math.round(190*f)),
+        e(k, 17, 'Transport', 'transport', Math.round(120*f)),
+        e(k, 22, 'Shopping', 'shopping', Math.round(230*f)),
+      ]};
+    });
+    return { settings:s, months:m };
+  }
+
+  async function loadMonth(key){
+    if (months[key]) return months[key];
+    const v = await store.get('month:' + key);
+    months[key] = v && Array.isArray(v.expenses) ? v : { expenses:[] };
+    return months[key];
+  }
+  async function loadAll(){
+    Object.keys(months).forEach(k => delete months[k]);
+    settings = await store.get('settings');
+    if (!settings){
+      const ex = exampleData();
+      settings = ex.settings; Object.assign(months, ex.months); isExample = true;
+    } else {
+      isExample = false;
+      settings.budgets ||= {}; settings.subs ||= [];
+    }
+    await Promise.all(Array.from({length:6}, (_, i) => loadMonth(shiftMonth(current, -i))));
+  }
+
+  // First real edit turns example data into the user's own data, starting clean.
+  async function ensureReal(){
+    if (!isExample) return;
+    isExample = false;
+    settings = { currency:settings.currency, income:0, budgets:{}, subs:[] };
+    Object.keys(months).forEach(k => months[k] = { expenses:[] });
+    await store.set('settings', settings);
+  }
+  let saveErr = false;
+  async function persist(keys){
+    try { await Promise.all(keys.map(k => store.set(k, k === 'settings' ? settings : months[k.replace('month:','')]))); saveErr = false; }
+    catch (e) { saveErr = true; toast('Could not save. Check your connection and try again.'); }
+    renderStoreNote();
+  }
+
+  // ---------- money ----------
+  let fmt, fmt0;
+  function setFormatter(){
+    const c = settings.currency || 'USD';
+    fmt = new Intl.NumberFormat(undefined, { style:'currency', currency:c });
+    fmt0 = new Intl.NumberFormat(undefined, { style:'currency', currency:c, maximumFractionDigits:0 });
+    const sym = fmt.formatToParts(0).find(p => p.type === 'currency');
+    $('curSym').textContent = sym ? sym.value : c;
+  }
+  const money = n => fmt.format(n || 0);
+
+  // ---------- subscriptions ----------
+  const monthlyEq = s => s.cycle === 'yearly' ? s.amount/12 : s.cycle === 'weekly' ? s.amount*52/12 : s.amount;
+  function subAppliesTo(s, key){ return s.active && s.start.slice(0,7) <= key; }
+  function nextRenewal(s){
+    let d = parseISO(s.start); const t = parseISO(todayISO);
+    let guard = 0;
+    while (d < t && guard++ < 5000){
+      if (s.cycle === 'weekly') d = new Date(d.getFullYear(), d.getMonth(), d.getDate()+7);
+      else {
+        const step = s.cycle === 'yearly' ? 12 : 1;
+        const base = parseISO(s.start);
+        const n = (d.getFullYear()-base.getFullYear())*12 + d.getMonth()-base.getMonth() + step;
+        const y = base.getFullYear() + Math.floor((base.getMonth()+n)/12), m = (base.getMonth()+n)%12;
+        d = new Date(y, m, Math.min(base.getDate(), new Date(y, m+1, 0).getDate()));
+      }
+    }
+    return d;
+  }
+  const subsTotalFor = key => settings.subs.filter(s => subAppliesTo(s, key)).reduce((a, s) => a + monthlyEq(s), 0);
+
+  // ---------- render ----------
+  function render(){
+    setFormatter();
+    $('currency').value = settings.currency;
+    $('monthLabel').textContent = monthName(current);
+    $('exampleNotice').hidden = !isExample;
+    const m = months[current] || { expenses:[] };
+    const exps = m.expenses.slice().sort((a,b) => b.date.localeCompare(a.date));
+    const expTotal = exps.reduce((a,e) => a + e.amount, 0);
+    const activeSubs = settings.subs.filter(s => subAppliesTo(s, current));
+    const subTotal = subsTotalFor(current);
+    const spent = expTotal + subTotal;
+    const income = Number(settings.income) || 0;
+    const left = income - spent;
+
+    // summary
+    if (document.activeElement !== $('income')) $('income').value = income || '';
+    $('sumExp').textContent = money(expTotal);
+    $('sumExpN').textContent = `${exps.length} ${exps.length === 1 ? 'entry' : 'entries'}`;
+    $('sumSubs').textContent = money(subTotal);
+    $('sumSubsN').textContent = `${activeSubs.length} active, monthly equivalent`;
+    $('sumLeft').textContent = money(left);
+    $('leftFig').classList.toggle('neg', left < 0);
+    const isNow = current === monthKey(today);
+    if (!income) $('sumLeftSub').textContent = 'Set your income to see this';
+    else if (left < 0) $('sumLeftSub').textContent = `Over by ${money(-left)}`;
+    else if (isNow){
+      const daysLeft = daysInMonth(current) - today.getDate() + 1;
+      $('sumLeftSub').textContent = `${money(left/daysLeft)} a day for ${daysLeft} more ${daysLeft===1?'day':'days'}`;
+    } else $('sumLeftSub').textContent = `${Math.round(left/income*100)}% of income saved`;
+
+    // by category
+    const byCat = {};
+    exps.forEach(e => byCat[e.cat] = (byCat[e.cat] || 0) + e.amount);
+    const segs = CATEGORIES.filter(c => byCat[c.id]).map(c => ({ name:c.name, color:c.color, v:byCat[c.id] }));
+    if (subTotal) segs.push({ name:'Subscriptions', color:SUBS_COLOR, v:subTotal });
+    segs.sort((a,b) => b.v - a.v);
+    const denom = Math.max(income, spent) || 1;
+    $('stackbar').innerHTML = segs.map(s => `<i style="width:${(s.v/denom*100).toFixed(2)}%;background:${s.color}" title="${esc(s.name)} ${money(s.v)}"></i>`).join('');
+    $('legend').innerHTML = segs.map(s => `<span><b style="background:${s.color}"></b>${esc(s.name)} <span class="num">${fmt0.format(s.v)}</span></span>`).join('')
+      + (income && left > 0 ? `<span><b style="background:var(--surface-2);border:1px solid var(--line)"></b>Unspent <span class="num">${fmt0.format(left)}</span></span>` : '');
+
+    // filters
+    const usedCats = CATEGORIES.filter(c => byCat[c.id]);
+    if (filter !== 'all' && !byCat[filter]) filter = 'all';
+    $('filters').innerHTML = [`<button class="chip" data-f="all" aria-pressed="${filter==='all'}">All</button>`]
+      .concat(usedCats.map(c => `<button class="chip" data-f="${c.id}" aria-pressed="${filter===c.id}">${esc(c.name)}</button>`)).join('');
+    $('filters').hidden = usedCats.length < 2;
+
+    // expenses list
+    const shown = filter === 'all' ? exps : exps.filter(e => e.cat === filter);
+    $('expCount').textContent = filter === 'all' ? money(expTotal) : `${money(shown.reduce((a,e)=>a+e.amount,0))} of ${money(expTotal)}`;
+    $('expList').innerHTML = shown.map(e => {
+      const c = CAT[e.cat] || CAT.other;
+      const dt = parseISO(e.date).toLocaleDateString(undefined, { month:'short', day:'numeric' });
+      return `<li><span class="date">${dt}</span><span class="what"><div>${esc(e.desc)}</div><small><span class="dot" style="background:${c.color}"></span>${esc(c.name)}</small></span><span class="amt">${money(e.amount)}</span><button class="icon-btn del" data-del-exp="${e.id}" aria-label="Delete ${esc(e.desc)}">&times;</button></li>`;
+    }).join('');
+    $('expEmpty').hidden = exps.length > 0;
+    $('expList').hidden = exps.length === 0;
+
+    // subscriptions
+    const subs = settings.subs.slice().sort((a,b) => (b.active - a.active) || monthlyEq(b) - monthlyEq(a));
+    const yearly = settings.subs.filter(s => s.active).reduce((a,s) => a + monthlyEq(s)*12, 0);
+    $('subYear').textContent = `${fmt0.format(yearly)} / yr`;
+    $('subList').innerHTML = subs.map(s => {
+      const nr = nextRenewal(s);
+      const days = Math.round((nr - parseISO(todayISO)) / 864e5);
+      const when = days === 0 ? 'today' : days === 1 ? 'tomorrow' : nr.toLocaleDateString(undefined, { month:'short', day:'numeric' });
+      const cyc = { monthly:'/mo', yearly:'/yr', weekly:'/wk' }[s.cycle];
+      const pill = !s.active ? `<span class="pill paused">Paused</span>`
+        : `<span class="pill ${days <= 7 ? 'soon' : ''}">Renews ${when}</span>`;
+      return `<li class="${s.active ? '' : 'is-paused'}"><span class="what"><div>${esc(s.name)}</div><small>${pill}<button class="linkish" data-toggle-sub="${s.id}">${s.active ? 'Pause' : 'Resume'}</button></small></span>
+        <span class="sub-amt"><span class="num">${money(s.amount)}${cyc}</span>${s.cycle !== 'monthly' ? `<small class="num">${money(monthlyEq(s))}/mo</small>` : ''}</span>
+        <button class="icon-btn del" data-del-sub="${s.id}" aria-label="Delete ${esc(s.name)}">&times;</button></li>`;
+    }).join('');
+    $('subEmpty').hidden = subs.length > 0;
+    $('subList').hidden = subs.length === 0;
+
+    // budgets
+    const budgeted = Object.values(settings.budgets).reduce((a,v) => a + (Number(v)||0), 0);
+    $('budTotal').textContent = budgeted ? `${fmt0.format(budgeted)} planned` : 'set a limit per category';
+    $('budgets').innerHTML = CATEGORIES.map(c => {
+      const lim = Number(settings.budgets[c.id]) || 0, sp = byCat[c.id] || 0;
+      if (!lim && !sp) return '';
+      const pct = lim ? sp/lim : 0;
+      const cls = !lim ? '' : pct > 1 ? 'over' : pct >= .85 ? 'warn' : '';
+      const state = !lim ? '' : pct > 1 ? `<span class="state over">${money(sp-lim)} over</span>` : pct >= .85 ? `<span class="state warn">${money(lim-sp)} left</span>` : '';
+      return `<div class="brow"><div class="top"><span><span class="dot" style="background:${c.color};margin-right:7px"></span>${esc(c.name)} ${state}</span>
+        <span class="num">${fmt0.format(sp)} of <input type="number" min="0" step="10" data-budget="${c.id}" value="${lim || ''}" placeholder="limit" aria-label="${esc(c.name)} monthly limit"></span></div>
+        <div class="meter ${cls}"><i style="width:${lim ? Math.min(pct,1)*100 : 0}%"></i></div></div>`;
+    }).join('') + `<div><select class="field" id="addBudget" aria-label="Add a budget for a category" style="width:auto;font-size:13px"><option value="">+ Set a limit for another category</option>${CATEGORIES.filter(c => !settings.budgets[c.id] && !byCat[c.id]).map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></div>`;
+
+    renderTrend();
+    renderStoreNote();
+  }
+
+  function renderTrend(){
+    const keys = Array.from({length:6}, (_, i) => shiftMonth(current, i-5));
+    const data = keys.map(k => ({ k, exp:(months[k]?.expenses || []).reduce((a,e) => a+e.amount, 0), sub:subsTotalFor(k) }));
+    const income = Number(settings.income) || 0;
+    const max = Math.max(income, ...data.map(d => d.exp + d.sub), 1);
+    const step = niceStep(max / 3);
+    const top = Math.ceil(max / step) * step;
+    const W = 340, H = 170, L = 44, R = 6, T = 10, B = 22;
+    const pw = W - L - R, ph = H - T - B, bw = pw / 6;
+    const y = v => T + ph - v / top * ph;
+    let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Spending over the last six months">`;
+    for (let v = 0; v <= top + 1e-6; v += step){
+      s += `<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/>`;
+      s += `<text x="${L-6}" y="${y(v)+3}" text-anchor="end">${compact(v)}</text>`;
+    }
+    data.forEach((d, i) => {
+      const x = L + i*bw + bw*.2, w = bw*.6, cur = d.k === current;
+      const op = cur ? 1 : .55;
+      if (d.sub) s += `<rect x="${x}" y="${y(d.sub)}" width="${w}" height="${y(0)-y(d.sub)}" fill="${SUBS_COLOR}" opacity="${op}"/>`;
+      if (d.exp) s += `<rect x="${x}" y="${y(d.sub+d.exp)}" width="${w}" height="${y(d.sub)-y(d.sub+d.exp)}" fill="var(--accent)" opacity="${op}"/>`;
+      s += `<text x="${x+w/2}" y="${H-6}" text-anchor="middle" style="${cur ? 'fill:var(--ink);font-weight:600' : ''}">${monthName(d.k, 'short')}</text>`;
+      if (cur && d.exp + d.sub) s += `<text x="${x+w/2}" y="${y(d.sub+d.exp)-4}" text-anchor="middle" style="fill:var(--ink);font-weight:600">${compact(d.exp+d.sub)}</text>`;
+    });
+    if (income) s += `<line x1="${L}" x2="${W-R}" y1="${y(income)}" y2="${y(income)}" stroke="var(--warn)" stroke-dasharray="4 3" stroke-width="1.2"/><text x="${W-R}" y="${y(income)-4}" text-anchor="end" style="fill:var(--warn)">income</text>`;
+    s += `</svg><div class="legend" style="margin-top:6px"><span><b style="background:var(--accent)"></b>Expenses</span><span><b style="background:${SUBS_COLOR}"></b>Subscriptions</span></div>`;
+    $('trend').innerHTML = s;
+  }
+  function niceStep(raw){ const p = Math.pow(10, Math.floor(Math.log10(raw))); const f = raw/p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p; }
+  function compact(v){ return new Intl.NumberFormat(undefined, { style:'currency', currency:settings.currency, notation:'compact', maximumFractionDigits:1 }).format(v); }
+  function renderStoreNote(){
+    $('storeNote').textContent = saveErr ? 'Last change was not saved.'
+      : store.kind === 'db' ? 'Saved to your account. It follows you across devices.'
+      : 'Saved in this browser only. Use Export to back it up.';
+  }
+  function esc(s){ return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+
+  let toastT;
+  function toast(msg){ const t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 2600); }
+  function confirmBox(msg){
+    return new Promise(res => {
+      const d = $('confirmDlg'); $('confirmMsg').textContent = msg;
+      const done = v => { d.close(); $('confirmYes').onclick = $('confirmNo').onclick = null; res(v); };
+      $('confirmYes').onclick = () => done(true); $('confirmNo').onclick = () => done(false);
+      d.oncancel = () => done(false);
+      d.showModal();
+    });
+  }
+
+  // ---------- events ----------
+  $('expCat').innerHTML = CATEGORIES.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  $('expCat').value = 'groceries';
+  $('subStart').value = todayISO;
+
+  function defaultExpDate(){
+    // Use today when viewing the current month, else the 1st of the viewed month.
+    $('expDate').value = current === monthKey(today) ? todayISO : `${current}-01`;
+  }
+
+  $('prevMonth').onclick = async () => { current = shiftMonth(current, -1); await ensureWindow(); defaultExpDate(); render(); };
+  $('nextMonth').onclick = async () => { current = shiftMonth(current, 1); await ensureWindow(); defaultExpDate(); render(); };
+  async function ensureWindow(){ await Promise.all(Array.from({length:6}, (_, i) => loadMonth(shiftMonth(current, -i)))); }
+
+  $('expForm').onsubmit = async ev => {
+    ev.preventDefault();
+    const date = $('expDate').value, desc = $('expDesc').value.trim(), amount = Math.round(parseFloat($('expAmt').value) * 100) / 100;
+    const err = $('expErr');
+    if (!date || !desc || !(amount > 0)){ err.textContent = 'Add a date, a description and an amount above zero.'; err.hidden = false; return; }
+    err.hidden = true;
+    await ensureReal();
+    const key = date.slice(0, 7);
+    await loadMonth(key);
+    months[key].expenses.push({ id:uid(), date, desc, cat:$('expCat').value, amount });
+    if (key !== current){ current = key; await ensureWindow(); }
+    $('expDesc').value = ''; $('expAmt').value = ''; $('expDesc').focus();
+    render(); toast(`Added ${money(amount)}`);
+    persist(['month:' + key]);
+  };
+
+  $('subForm').onsubmit = async ev => {
+    ev.preventDefault();
+    const name = $('subName').value.trim(), amount = Math.round(parseFloat($('subAmt').value) * 100) / 100, start = $('subStart').value;
+    const err = $('subErr');
+    if (!name || !(amount > 0) || !start){ err.textContent = 'Add a name, a price above zero and the first billing date.'; err.hidden = false; return; }
+    err.hidden = true;
+    await ensureReal();
+    settings.subs.push({ id:uid(), name, amount, cycle:$('subCycle').value, start, active:true });
+    $('subName').value = ''; $('subAmt').value = ''; $('subName').focus();
+    render(); toast(`Added ${name}`);
+    persist(['settings']);
+  };
+
+  document.addEventListener('click', async ev => {
+    const t = ev.target.closest('[data-del-exp],[data-del-sub],[data-toggle-sub],[data-f]');
+    if (!t) return;
+    if (t.dataset.f){ filter = t.dataset.f; render(); return; }
+    if (t.dataset.delExp){
+      if (isExample){ toast('Clear the examples first to start your own ledger.'); return; }
+      const m = months[current]; m.expenses = m.expenses.filter(e => e.id !== t.dataset.delExp);
+      render(); toast('Expense deleted'); persist(['month:' + current]);
+    }
+    if (t.dataset.delSub){
+      if (isExample){ toast('Clear the examples first to start your own ledger.'); return; }
+      const s = settings.subs.find(x => x.id === t.dataset.delSub);
+      if (!(await confirmBox(`Delete ${s.name}? Pause it instead if you might pick it back up.`))) return;
+      settings.subs = settings.subs.filter(x => x.id !== s.id);
+      render(); toast('Subscription deleted'); persist(['settings']);
+    }
+    if (t.dataset.toggleSub){
+      if (isExample){ toast('Clear the examples first to start your own ledger.'); return; }
+      const s = settings.subs.find(x => x.id === t.dataset.toggleSub); s.active = !s.active;
+      render(); persist(['settings']);
+    }
+  });
+
+  document.addEventListener('change', async ev => {
+    const t = ev.target;
+    if (t.dataset.budget || t.id === 'addBudget' || t.id === 'income' || t.id === 'currency'){
+      if (isExample && t.id !== 'currency'){ await ensureReal(); }
+      if (t.dataset.budget){ const v = Math.max(0, Number(t.value) || 0); if (v) settings.budgets[t.dataset.budget] = v; else delete settings.budgets[t.dataset.budget]; }
+      if (t.id === 'addBudget' && t.value){ settings.budgets[t.value] = 100; const id = t.value; render(); document.querySelector(`[data-budget="${id}"]`)?.select(); persist(['settings']); return; }
+      if (t.id === 'income') settings.income = Math.max(0, Number(t.value) || 0);
+      if (t.id === 'currency') settings.currency = t.value;
+      render();
+      if (!isExample) persist(['settings']);
+    }
+  });
+
+  $('startFresh').onclick = async () => { await ensureReal(); render(); toast('Examples cleared. Start by setting your income.'); $('income').focus(); };
+
+  // export / import
+  $('exportBtn').onclick = async () => {
+    const allKeys = Object.keys(months).filter(k => months[k].expenses.length);
+    const data = { app:'monthly-ledger', version:1, exported:new Date().toISOString(), settings, months:Object.fromEntries(allKeys.map(k => [k, months[k]])) };
+    const json = JSON.stringify(data, null, 2), filename = `ledger-${todayISO}.json`;
+    try {
+      const dl = window.claude?.use ? await Promise.race([window.claude.use('downloads'), new Promise(r => setTimeout(() => r(null), 1500))]) : null;
+      if (dl){ await dl.save({ filename, data:json }); return; }
+    } catch (e) { if (e?.code === 'cancelled' || e?.code === 'declined') return; }
+    try {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([json], { type:'application/json' })); a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+    } catch {}
+    try { await navigator.clipboard.writeText(json); toast('Backup copied to the clipboard too'); } catch {}
+  };
+  $('importFile').onchange = async ev => {
+    const f = ev.target.files[0]; ev.target.value = '';
+    if (!f) return;
+    try {
+      const data = JSON.parse(await f.text());
+      if (data.app !== 'monthly-ledger' || !data.settings) throw new Error();
+      if (!(await confirmBox('Replace everything here with the imported file? Months not in the file stay as they are.'))) return;
+      isExample = false; settings = data.settings;
+      Object.entries(data.months || {}).forEach(([k, v]) => months[k] = v);
+      await persist(['settings', ...Object.keys(data.months || {}).map(k => 'month:' + k)]);
+      render(); toast('Imported');
+    } catch { toast('That file is not a Monthly Ledger export.'); }
+  };
+
+  // ---------- boot ----------
+  (async () => {
+    await loadAll(); defaultExpDate(); render();
+    // Inside a Claude artifact, switch to account storage so data follows the user.
+    if (window.claude?.use){
+      try {
+        const db = await window.claude.use('db');
+        if (!db) return;
+        const dbStore = makeDbStore(db);
+        const remote = await dbStore.get('settings');
+        store = dbStore;
+        if (!remote && !isExample){
+          // Carry over anything entered before account storage connected.
+          await persist(['settings', ...Object.keys(months).filter(k => months[k].expenses.length).map(k => 'month:' + k)]);
+        } else {
+          await loadAll();
+        }
+        render();
+      } catch { store = local; renderStoreNote(); }
+    }
+  })();
+})();
+</script>
